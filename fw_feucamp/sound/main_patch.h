@@ -7,7 +7,6 @@
 #include "enveloppe.h"
 #include "patch.h"
 #include "filter.h"
-#include "enveloppe.h"
 
 #define CLIP(x, min, max) MAX(MIN((x), (max)), (min))
 
