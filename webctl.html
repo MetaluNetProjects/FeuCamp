@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8" />
+    <title>Feu control room</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <style>
+* {
+  box-sizing: border-box;
+}
+
+body {
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+/* Style the header */
+header {
+  background-color: #444;
+  padding: 1px;
+  text-align: center;
+  font-size: 20px;
+  color: #d55;
+}
+
+/* Container for flexboxes */
+section {
+  display: -webkit-flex;
+  display: flex;
+}
+
+/* Style the navigation menu */
+nav {
+  -webkit-flex: 1;
+  -ms-flex: 1;
+  flex: 3;
+  background: #ccc;
+  padding: 5px;
+}
+
+/* Style the list inside the menu */
+nav ul {
+  list-style-type: none;
+  padding: 0;
+}
+
+/* Style the content */
+article {
+  -webkit-flex: 3;
+  -ms-flex: 3;
+  flex: 1;
+  background-color: #f1f1f1;
+  padding: 10px;
+}
+
+/* Style the footer */
+footer {
+  background-color: #777;
+  padding: 10px;
+  text-align: center;
+  color: white;
+}
+
+/* Responsive layout - makes the menu and the content (inside the section) sit on top of each other instead of next to each other */
+@media (max-width: 600px) {
+  section {
+    -webkit-flex-direction: column;
+    flex-direction: column;
+  }
+}
+
+.button {
+  padding: 10px;
+  font-size: 16px;
+}
+
+.switch {
+  position: relative;
+  width: 34px;
+  height: 34px;
+}
+.slider {
+  width: 50%;
+  height: 20px;
+}
+.ctldiv {
+  padding: 5px;
+}
+
+label{
+  vertical-align:50%;
+  font-size: 16px;
+  font-weight: normal;
+}
+
+    </style>
+</head>
+<body>
+
+<header>
+  <h2>Feu control room</h2>
+</header>
+
+<section>
+  <nav>
+    <ul>
+    <h1>Controls</h1>
+
+    <div class="ctldiv">
+        <input type="range" class="slider" id="volume" min="0" max="255"/>
+        <label>Volume: <output id="volume_value">0</output></label>
+    </div>
+    <div class="ctldiv">
+        <input type="range" class="slider" id="intens" min="0" max="255"/>
+        <label>Intensité feu: <output id="intens_value">0</output></label>
+    </div>
+    <div class="ctldiv">
+        <input type="range" class="slider" id="crepit" min="0" max="255"/>
+        <label>Crépitements: <output id="crepit_value">0</output></label>
+    </div>
+    <div class="ctldiv">
+        <input type="range" class="slider" id="rouge" min="0" max="64"/>
+        <label>Taux de rouge: <output id="rouge_value">0</output></label>
+    </div>
+
+    </ul>
+  </nav>
+
+  <article>
+      <h1>Log</h1>
+      <textarea id='chatbox' rows=12 cols=40 readonly> </textarea>
+  </article>
+</section>
+
+<footer>
+  <p> metalu.net 2025</p>
+</footer>
+
+<script type="text/javascript">
+function log(text) {
+    const logbox = document.getElementById("chatbox");
+    logbox.value += text + '\n';
+    logbox.scrollTo( 0, 999999 );
+}
+
+function update_label(control, val) {
+    document.getElementById(control + "_value").textContent = val;
+}
+
+function get_fraise_chars(words) {
+    const id = parseInt(words.shift());
+    if(id != 1) return;
+    let command = words.shift();
+    if(command !== "R") return;
+    let control = words.shift();
+    let val = parseInt(words.shift());
+    document.getElementById(control).value = val;
+    update_label(control, val);
+}
+
+function get_fraise_bytes(words) {
+}
+
+class WebSocketHandler {
+    periodic(event) {
+        if(this.count > 5)
+            this.ws.send("hello from websocket");
+        this.count++;
+    }
+
+    get_current_state() {
+        ["volume", "intens", "crepit", "rouge"].forEach(el => this.ws.send("F 1 Rget " + el));
+    }
+
+    constructor() {
+        this.count = 0;
+        if (window.location.protocol == "https:") {
+            this.ws = new WebSocket("wss://" + location.hostname + ":443/websocket");
+        }
+        else if (window.location.protocol == "http:") {
+            this.ws = new WebSocket("ws://" + location.hostname + ":80/websocket");
+        }
+        else if (window.location.protocol == "file:") {
+            this.ws = new WebSocket("ws://127.0.0.1:80/websocket");
+        }
+
+        this.ws.onerror = (event) => {
+            console.log("WebSocket error: ", event);
+        };
+
+        this.ws.onopen = (event) => {
+            this.ws.send("P 1 1"); // poll fruit ID 1
+            this.get_current_state();
+        };
+
+        this.ws.onmessage = (event) => {
+            event.data.text().then(text => {
+                //console.log("Message from server " + text);
+                //log("Message: " + text);
+                const words = text.split(" ");
+                const command = words.shift();
+                switch(command) {
+                    case "F": get_fraise_chars(words); break;
+                    case "f": get_fraise_bytes(words); break;
+                    case "D": this.get_current_state(); break; // fruit is detected, get its state
+                }
+            });
+        };
+    }
+}
+let handler = new WebSocketHandler();
+
+function int32_to_bytes(i) {
+    return [i >> 24, (i >> 16) % 255, (i >> 8) % 255, i % 255].join(" ");
+}
+
+function format_control(control, update_label_func) {
+    let c = document.getElementById(control);
+    c.addEventListener("input", (event) => {
+        update_label_func(control, event.target.value)
+        handler.ws.send(`F 1 Rset ${control} ${event.target.value}`);
+    });
+}
+
+function send_setting_string(num, value) {
+    let outstr = "f 1 50 " + num;
+    for(i = 0; i < value.length; i++) outstr += " " + value.charCodeAt(i);
+    handler.ws.send(outstr);
+}
+
+format_control("volume", update_label);
+format_control("intens", update_label);
+format_control("crepit", update_label);
+format_control("rouge", update_label);
+
+/*document.getElementById("save_eeprom").onclick = function() {
+    send_setting_string(255, "EEPROM_SAVE");
+}*/
+
+chatbox.value='';
+log("Feu control room loaded!");
+</script>
+</body>
+</html>
