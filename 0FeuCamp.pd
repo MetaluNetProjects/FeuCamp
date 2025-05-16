@@ -6,7 +6,7 @@
 #X obj 10 10 declare -path Fraise -path AutoPreset -path stuff;
 #X obj 177 54 bng 20 250 50 0 RELOAD_ALL RELOAD_ALL RELOAD_ALL 0 -10 0 12 #ff8300 #000000 #000000;
 #X obj 11 269 preset_master feu_grille;
-#N canvas 145 132 1219 872 feu_grille 1;
+#N canvas 145 132 1219 872 feu_grille 0;
 #X obj 21 35 lamp feu_grille pixels;
 #X obj 21 401 fruit/send2 feucamp;
 #X text 74 354 group0 command;
@@ -313,7 +313,7 @@
 #X connect 23 0 22 0;
 #X restore 391 7 pd stuff;
 #X obj 426 259 fruit/send2 feucamp;
-#N canvas 69 552 1698 422 emulator 1;
+#N canvas 69 552 1698 422 emulator 0;
 #X obj 43 35 declare -path emulator;
 #X obj 59 206 emulator;
 #X obj 59 243 *~;

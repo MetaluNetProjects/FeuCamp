@@ -106,3 +106,8 @@ void remote_update() {
     }
 }
 
+void remote_init() {
+    remote_command("set volume 80");
+    remote_command("set intens 50");
+    remote_command("set crepit 100");
+}

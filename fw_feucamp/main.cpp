@@ -29,6 +29,7 @@ void setup() {
         Lamp::add_to_group(0, i);
     }
     audio.init(AUDIO_PWM_PIN);
+    remote_init();
 }
 
 void loop(){
