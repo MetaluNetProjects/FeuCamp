@@ -8,7 +8,9 @@
 #include "patch.h"
 #include "filter.h"
 
+#ifndef CLIP
 #define CLIP(x, min, max) MAX(MIN((x), (max)), (min))
+#endif
 
 class Noise {
 public:

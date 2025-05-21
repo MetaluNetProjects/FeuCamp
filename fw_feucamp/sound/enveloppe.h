@@ -4,7 +4,9 @@
 #include <string.h>
 #include "sound.h"
 
+#ifndef CLIP
 #define CLIP(x, min, max) MAX(MIN((x), (max)), (min))
+#endif
 
 class Enveloppe {
 public:

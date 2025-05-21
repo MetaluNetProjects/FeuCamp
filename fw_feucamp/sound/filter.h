@@ -5,7 +5,9 @@
 #include "osc.h"
 #include "sound.h"
 
+#ifndef CLIP
 #define CLIP(x, min, max) MAX(MIN((x), (max)), (min))
+#endif
 
 // Pd bp~ converted to integer computation
 class Bandpass {

@@ -107,8 +107,22 @@ label{
 
     <div class="ctldiv">
         <input type="range" class="slider" id="volume" min="0" max="255"/>
-        <label>Volume: <output id="volume_value">0</output></label>
+        <label>Master volume: <output id="volume_value">0</output></label>
     </div>
+    <br>
+    <div class="ctldiv">
+        <input type="range" class="slider" id="soufflevolume" min="0" max="255"/>
+        <label>Souffle volume: <output id="soufflevolume_value">0</output></label>
+    </div>
+    <div class="ctldiv">
+        <input type="range" class="slider" id="gresillvolume" min="0" max="255"/>
+        <label>Gresille volume: <output id="gresillvolume_value">0</output></label>
+    </div>
+    <div class="ctldiv">
+        <input type="range" class="slider" id="crepitvolume" min="0" max="255"/>
+        <label>Crepite volume: <output id="crepitvolume_value">0</output></label>
+    </div>
+    <br>
     <div class="ctldiv">
         <input type="range" class="slider" id="intens" min="0" max="255"/>
         <label>Intensité feu: <output id="intens_value">0</output></label>
@@ -160,6 +174,7 @@ function get_fraise_chars(words) {
 function get_fraise_bytes(words) {
 }
 
+const controls = ["volume", "soufflevolume", "gresillvolume", "crepitvolume", "intens", "crepit", "rouge"];
 class WebSocketHandler {
     periodic(event) {
         if(this.count > 5)
@@ -168,7 +183,7 @@ class WebSocketHandler {
     }
 
     get_current_state() {
-        ["volume", "intens", "crepit", "rouge"].forEach(el => this.ws.send("F 1 Rget " + el));
+        controls.forEach(el => this.ws.send("F 1 Rget " + el));
     }
 
     constructor() {
@@ -227,10 +242,12 @@ function send_setting_string(num, value) {
     handler.ws.send(outstr);
 }
 
-format_control("volume", update_label);
+controls.forEach(el => format_control(el, update_label));
+
+/*format_control("volume", update_label);
 format_control("intens", update_label);
 format_control("crepit", update_label);
-format_control("rouge", update_label);
+format_control("rouge", update_label);*/
 
 /*document.getElementById("save_eeprom").onclick = function() {
     send_setting_string(255, "EEPROM_SAVE");

@@ -4,13 +4,19 @@
 #include "string.h"
 #include "sound/audiolayer.h"
 #include "lamp.h"
+#include "sound/main_patch.h"
+
 #include <algorithm>
 
 #define printf fraise_printf
 
 extern AudioLayer audio;
+MainPatch &patch = static_cast<MainPatch&>(audio.get_patch());
 
 uint8_t volume;
+uint8_t soufflevolume;
+uint8_t gresillvolume;
+uint8_t crepitvolume;
 uint8_t intens;
 uint8_t crepit;
 uint8_t rouge;
@@ -28,6 +34,30 @@ static void command_set_volume(char * command) {
     if(!is_int(token, &val)) return;
     volume = (uint8_t)val;
     audio.set_volume(volume);
+}
+
+static void command_set_soufflevolume(char * command) {
+    char *token = strsep(&command, " ");
+    int val;
+    if(!is_int(token, &val)) return;
+    soufflevolume = (uint8_t)val;
+    patch.wind.vol = (50000 * soufflevolume) / 256;
+}
+
+static void command_set_gresillvolume(char * command) {
+    char *token = strsep(&command, " ");
+    int val;
+    if(!is_int(token, &val)) return;
+    gresillvolume = (uint8_t)val;
+    Crackle::vol = (3000 * gresillvolume) / 256;
+}
+
+static void command_set_crepitvolume(char * command) {
+    char *token = strsep(&command, " ");
+    int val;
+    if(!is_int(token, &val)) return;
+    crepitvolume = (uint8_t)val;
+    Crack::vol = (30000 * crepitvolume) / 256;
 }
 
 static void command_set_intens(char * command) {
@@ -57,6 +87,9 @@ static void command_set_rouge(char * command) {
 
 static void command_get(const char* command) {
     if(!strcmp(command, "volume")) printf("R volume %d\n", volume);
+    else if(!strcmp(command, "soufflevolume")) printf("R soufflevolume %d\n", soufflevolume);
+    else if(!strcmp(command, "gresillvolume")) printf("R gresillvolume %d\n", gresillvolume);
+    else if(!strcmp(command, "crepitvolume")) printf("R crepitvolume %d\n", crepitvolume);
     else if(!strcmp(command, "intens")) printf("R intens %d\n", intens);
     else if(!strcmp(command, "crepit")) printf("R crepit %d\n", crepit);
     else if(!strcmp(command, "rouge")) printf("R rouge %d\n", rouge);
@@ -65,9 +98,12 @@ static void command_get(const char* command) {
 static void command_set(char* command) {
     char *token = strsep(&command, " ");
     if(!strcmp(token, "volume")) command_set_volume(command);
-    if(!strcmp(token, "intens")) command_set_intens(command);
-    if(!strcmp(token, "crepit")) command_set_crepit(command);
-    if(!strcmp(token, "rouge")) command_set_rouge(command);
+    else if(!strcmp(token, "soufflevolume")) command_set_soufflevolume(command);
+    else if(!strcmp(token, "gresillvolume")) command_set_gresillvolume(command);
+    else if(!strcmp(token, "crepitvolume")) command_set_crepitvolume(command);
+    else if(!strcmp(token, "intens")) command_set_intens(command);
+    else if(!strcmp(token, "crepit")) command_set_crepit(command);
+    else if(!strcmp(token, "rouge")) command_set_rouge(command);
     command_get(token);
 }
 
@@ -107,7 +143,10 @@ void remote_update() {
 }
 
 void remote_init() {
-    remote_command("set volume 80");
+    remote_command("set volume 250");
+    remote_command("set soufflevolume 25");
+    remote_command("set gresillvolume 25");
+    remote_command("set crepitvolume 250");
     remote_command("set intens 50");
     remote_command("set crepit 100");
 }
